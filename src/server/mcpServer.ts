@@ -135,6 +135,18 @@ export class MCPServerImpl {
                   'Image resolution for high-quality output. Specify "2K" or "4K" when you need higher resolution images with better text rendering and fine details. Leave unspecified for standard quality.',
                 enum: ['2K', '4K'],
               },
+              figureStyle: {
+                type: 'string' as const,
+                description:
+                  'Scientific figure style for publication-ready illustrations (Nature, Science quality). Use "scientific_diagram" for process/concept diagrams, "scientific_map" for maps with scale/legend/north arrow, "scientific_chart" for data visualizations with axes and labels.',
+                enum: ['scientific_diagram', 'scientific_map', 'scientific_chart'],
+              },
+              editMode: {
+                type: 'string' as const,
+                description:
+                  'Edit mode for image modification. Use "strict" to preserve everything exactly except the specific change requested (recommended for scientific figures). Use "creative" for artistic interpretation. Default is "creative".',
+                enum: ['strict', 'creative'],
+              },
             },
             required: ['prompt'],
           },
@@ -237,6 +249,12 @@ export class MCPServerImpl {
         }
         if (params.useGoogleSearch !== undefined) {
           features.useGoogleSearch = params.useGoogleSearch
+        }
+        if (params.figureStyle !== undefined) {
+          features.figureStyle = params.figureStyle
+        }
+        if (params.editMode !== undefined) {
+          features.editMode = params.editMode
         }
 
         const promptResult = await this.structuredPromptGenerator.generateStructuredPrompt(

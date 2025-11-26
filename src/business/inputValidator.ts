@@ -5,7 +5,7 @@
 
 import { existsSync } from 'node:fs'
 import { extname } from 'node:path'
-import type { AspectRatio, GenerateImageParams } from '../types/mcp'
+import type { AspectRatio, EditMode, FigureStyle, GenerateImageParams } from '../types/mcp'
 import type { Result } from '../types/result'
 import { Err, Ok } from '../types/result'
 import { InputValidationError } from '../utils/errors'
@@ -27,6 +27,14 @@ const SUPPORTED_ASPECT_RATIOS: readonly AspectRatio[] = [
   '16:9',
   '21:9',
 ] as const
+
+const SUPPORTED_FIGURE_STYLES: readonly FigureStyle[] = [
+  'scientific_diagram',
+  'scientific_map',
+  'scientific_chart',
+] as const
+
+const SUPPORTED_EDIT_MODES: readonly EditMode[] = ['strict', 'creative'] as const
 
 /**
  * Converts bytes to MB with proper formatting
@@ -222,6 +230,26 @@ export function validateGenerateImageParams(
       new InputValidationError(
         `Invalid aspect ratio: ${params.aspectRatio}. Supported values: ${SUPPORTED_ASPECT_RATIOS.join(', ')}`,
         `Please use one of the supported aspect ratios: ${SUPPORTED_ASPECT_RATIOS.join(', ')}`
+      )
+    )
+  }
+
+  // Validate figureStyle parameter
+  if (params.figureStyle && !SUPPORTED_FIGURE_STYLES.includes(params.figureStyle)) {
+    return Err(
+      new InputValidationError(
+        `Invalid figure style: ${params.figureStyle}. Supported values: ${SUPPORTED_FIGURE_STYLES.join(', ')}`,
+        `Please use one of the supported figure styles: ${SUPPORTED_FIGURE_STYLES.join(', ')}`
+      )
+    )
+  }
+
+  // Validate editMode parameter
+  if (params.editMode && !SUPPORTED_EDIT_MODES.includes(params.editMode)) {
+    return Err(
+      new InputValidationError(
+        `Invalid edit mode: ${params.editMode}. Supported values: ${SUPPORTED_EDIT_MODES.join(', ')}`,
+        `Please use one of the supported edit modes: ${SUPPORTED_EDIT_MODES.join(', ')}`
       )
     )
   }

@@ -28,6 +28,22 @@ export type AspectRatio =
 export type ImageSize = '2K' | '4K'
 
 /**
+ * Scientific figure styles for publication-ready illustrations
+ * Optimized for environmental sciences, glaciology, and remote sensing
+ */
+export type FigureStyle =
+  | 'scientific_diagram'  // Schémas, processus, concepts scientifiques
+  | 'scientific_map'      // Cartes avec éléments standards (échelle, nord, légende)
+  | 'scientific_chart'    // Graphiques, visualisations de données
+
+/**
+ * Edit mode for image modification
+ * - strict: Preserves everything except the specific modification requested
+ * - creative: Allows artistic interpretation while maintaining general style
+ */
+export type EditMode = 'strict' | 'creative'
+
+/**
  * Parameters for image generation using Gemini API
  */
 export interface GenerateImageParams {
@@ -53,6 +69,10 @@ export interface GenerateImageParams {
   aspectRatio?: AspectRatio
   /** Image resolution for high-quality output (e.g., "2K", "4K"). Leave unspecified for standard quality */
   imageSize?: ImageSize
+  /** Scientific figure style for publication-ready illustrations (optional) */
+  figureStyle?: FigureStyle
+  /** Edit mode: "strict" preserves original exactly except requested changes, "creative" allows artistic interpretation (default: "creative") */
+  editMode?: EditMode
 }
 
 /**

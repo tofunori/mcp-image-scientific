@@ -43,6 +43,67 @@ IMPORTANT: An input image has been provided. Your task is to:
 5. Use phrases like "maintain the existing...", "preserve the original...", "keep the same..." to ensure fidelity to source`
 
 /**
+ * Strict editing mode - preserves everything except the specific modification
+ */
+const STRICT_EDITING_CONTEXT = `
+
+CRITICAL: STRICT EDITING MODE - Maximum fidelity to original image required.
+
+You MUST:
+1. PRESERVE EXACTLY: All colors, positions, text, labels, layout, proportions, and every visual element
+2. ONLY MODIFY: The specific element or change explicitly requested by the user
+3. DO NOT: Add artistic interpretation, enhance lighting, change composition, or modify anything not explicitly requested
+4. MAINTAIN: Exact pixel-level fidelity for all unchanged areas
+5. USE PHRASES: "keeping all other elements exactly as they appear", "modifying only...", "preserving the exact position and appearance of..."
+
+This is for scientific/technical image editing where precision is critical. Any unauthorized modification is unacceptable.`
+
+/**
+ * Scientific figure system prompt for publication-ready illustrations
+ */
+const SCIENTIFIC_FIGURE_PROMPT = `You are an expert at creating scientific illustrations for academic publications (Nature, Science, etc.).
+
+CRITICAL PRINCIPLES FOR SCIENTIFIC FIGURES:
+- CLARITY over aesthetics: Every element must serve a scientific purpose
+- ACCURACY is paramount: No artistic liberties with scientific content
+- PUBLICATION-READY: Clean, professional, suitable for peer-reviewed journals
+- ACCESSIBILITY: High contrast, colorblind-friendly when possible
+
+MANDATORY ELEMENTS:
+- Clean white or neutral background (no gradients, no artistic effects)
+- High contrast colors for readability
+- Clear, legible labels and text
+- Professional, technical illustration style
+- No decorative elements or embellishments
+
+DOMAIN-SPECIFIC GUIDELINES:
+
+FOR DIAGRAMS (scientific_diagram):
+- Clear process flows with arrows
+- Labeled components
+- Logical spatial organization
+- Standard scientific symbology
+
+FOR MAPS (scientific_map):
+- Include scale bar
+- Include north arrow when relevant
+- Include legend for all symbols/colors
+- Use appropriate color schemes (elevation, temperature, etc.)
+- Clean cartographic style
+
+FOR CHARTS (scientific_chart):
+- Clear axis labels with units
+- Appropriate data visualization
+- Legend when multiple data series
+- Grid lines if helpful for reading values
+
+OUTPUT STYLE:
+- Vector-like clean lines
+- Consistent line weights
+- Professional typography
+- Minimal but effective use of color`
+
+/**
  * Feature flags for image generation
  */
 export interface FeatureFlags {
@@ -50,6 +111,8 @@ export interface FeatureFlags {
   blendImages?: boolean
   useWorldKnowledge?: boolean
   useGoogleSearch?: boolean
+  figureStyle?: 'scientific_diagram' | 'scientific_map' | 'scientific_chart'
+  editMode?: 'strict' | 'creative'
 }
 
 /**
@@ -92,10 +155,17 @@ export class StructuredPromptGeneratorImpl implements StructuredPromptGenerator 
       // Build complete prompt with system instruction and meta-prompt
       const completePrompt = this.buildCompletePrompt(userPrompt, features, !!inputImageData)
 
-      // Combine system prompts for image editing mode
-      const systemInstruction = inputImageData
-        ? SYSTEM_PROMPT + IMAGE_EDITING_CONTEXT
+      // Build system instruction based on mode
+      let systemInstruction = features.figureStyle
+        ? SCIENTIFIC_FIGURE_PROMPT
         : SYSTEM_PROMPT
+
+      // Add editing context if input image is provided
+      if (inputImageData) {
+        systemInstruction += features.editMode === 'strict'
+          ? STRICT_EDITING_CONTEXT
+          : IMAGE_EDITING_CONTEXT
+      }
 
       // Generate structured prompt using Gemini 2.0 Flash via pure API call
       const config = {
@@ -135,9 +205,16 @@ export class StructuredPromptGeneratorImpl implements StructuredPromptGenerator 
   ): string {
     const featureContext = this.buildEnhancedFeatureContext(features)
 
+    // Scientific figure mode - different prompt structure
+    if (features.figureStyle) {
+      return this.buildScientificPrompt(userPrompt, features, hasInputImage)
+    }
+
     // Add image editing context if an input image is provided
     const imageEditingInstruction = hasInputImage
-      ? `\nNOTE: An input image has been provided. Focus on preserving its original characteristics while applying the requested modifications. Maintain consistency with the source image's style, colors, and atmosphere.\n`
+      ? features.editMode === 'strict'
+        ? `\nCRITICAL: An input image has been provided. You MUST preserve EVERYTHING exactly as it appears, modifying ONLY what the user explicitly requests. No artistic interpretation allowed.\n`
+        : `\nNOTE: An input image has been provided. Focus on preserving its original characteristics while applying the requested modifications. Maintain consistency with the source image's style, colors, and atmosphere.\n`
       : ''
 
     return `Transform this image generation request into a detailed, vivid prompt that will produce high-quality results:
@@ -160,6 +237,50 @@ Input: "A happy dog in a park"
 Enhanced: "Golden retriever mid-leap catching a red frisbee, ears flying, tongue out in joy, in a sunlit urban park. Soft morning light filtering through oak trees creates dappled shadows on emerald grass. Background shows families on picnic blankets, slightly out of focus. Shot from low angle emphasizing the dog's athletic movement, with motion blur on the paws suggesting speed."
 
 Now transform the user's request with similar attention to detail and creative enhancement.`
+  }
+
+  /**
+   * Build prompt specifically for scientific figures
+   */
+  private buildScientificPrompt(
+    userPrompt: string,
+    features: FeatureFlags,
+    hasInputImage: boolean
+  ): string {
+    const figureTypeDescription = {
+      scientific_diagram: 'a scientific diagram showing processes, concepts, or relationships',
+      scientific_map: 'a scientific map with proper cartographic elements (scale, north arrow, legend)',
+      scientific_chart: 'a scientific chart or data visualization with clear axes and labels',
+    }
+
+    const typeDesc = features.figureStyle
+      ? figureTypeDescription[features.figureStyle]
+      : 'a scientific illustration'
+
+    // Strict editing instruction for scientific images
+    const editingInstruction = hasInputImage
+      ? features.editMode === 'strict'
+        ? `\nSTRICT EDITING: An input image is provided. Preserve ALL existing elements exactly. Only apply the specific modification requested. Do not add artistic effects or change anything else.\n`
+        : `\nEDITING: An input image is provided. Maintain the scientific style and accuracy while applying the requested changes.\n`
+      : ''
+
+    return `Create ${typeDesc} for a high-impact scientific publication (Nature, Science quality).
+
+REQUEST: "${userPrompt}"
+${editingInstruction}
+REQUIREMENTS:
+- Clean white or neutral background
+- High contrast, publication-ready colors
+- Clear labels and annotations where needed
+- Professional technical illustration style
+- No decorative or artistic embellishments
+- Suitable for print in academic journals
+
+${features.figureStyle === 'scientific_map' ? `MAP ELEMENTS: Include scale bar, north arrow if relevant, and legend for any symbols or color coding.` : ''}
+${features.figureStyle === 'scientific_chart' ? `CHART ELEMENTS: Include clear axis labels with units, legend if multiple data series, appropriate grid lines.` : ''}
+${features.figureStyle === 'scientific_diagram' ? `DIAGRAM ELEMENTS: Use clear arrows for flow/relationships, label all components, maintain logical spatial organization.` : ''}
+
+Transform this request into a precise, technical description that will produce a publication-quality scientific figure.`
   }
 
   /**
