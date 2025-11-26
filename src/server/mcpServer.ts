@@ -229,9 +229,21 @@ export class MCPServerImpl {
 
       // Handle input image if provided
       let inputImageData: string | undefined
+      let inputImageMimeType: string | undefined
       if (params.inputImagePath) {
         const imageBuffer = await fs.readFile(params.inputImagePath)
         inputImageData = imageBuffer.toString('base64')
+        // Detect MIME type from file extension
+        const ext = path.extname(params.inputImagePath).toLowerCase()
+        const mimeTypes: Record<string, string> = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.gif': 'image/gif',
+          '.bmp': 'image/bmp',
+        }
+        inputImageMimeType = mimeTypes[ext] || 'image/png'
       }
 
       // Generate structured prompt using Gemini 2.0 Flash (unless skipped)
@@ -288,6 +300,7 @@ export class MCPServerImpl {
       const generationResult = await this.geminiClient.generateImage({
         prompt: structuredPrompt,
         ...(inputImageData && { inputImage: inputImageData }),
+        ...(inputImageMimeType && { inputImageMimeType }),
         ...(params.aspectRatio && { aspectRatio: params.aspectRatio }),
         ...(params.imageSize && { imageSize: params.imageSize }),
         ...(params.useGoogleSearch !== undefined && { useGoogleSearch: params.useGoogleSearch }),

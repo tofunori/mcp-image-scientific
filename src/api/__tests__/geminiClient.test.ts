@@ -159,7 +159,7 @@ describe('geminiClient', () => {
               {
                 inlineData: {
                   data: inputImageBase64,
-                  mimeType: 'image/jpeg',
+                  mimeType: 'image/png',
                 },
               },
               {
@@ -687,7 +687,7 @@ describe('geminiClient', () => {
               {
                 inlineData: {
                   data: inputBase64,
-                  mimeType: 'image/jpeg',
+                  mimeType: 'image/png',
                 },
               },
               {

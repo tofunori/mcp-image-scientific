@@ -142,6 +142,7 @@ export interface GeminiGenerationMetadata {
 export interface GeminiApiParams {
   prompt: string
   inputImage?: string
+  inputImageMimeType?: string
   aspectRatio?: string
   imageSize?: string
   useGoogleSearch?: boolean
@@ -187,7 +188,7 @@ class GeminiClientImpl implements GeminiClient {
             {
               inlineData: {
                 data: params.inputImage,
-                mimeType: 'image/jpeg', // TODO: Dynamic MIME type support
+                mimeType: params.inputImageMimeType || 'image/png',
               },
             },
             {
