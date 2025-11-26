@@ -147,6 +147,120 @@ export interface GeminiApiParams {
   imageSize?: string
   useGoogleSearch?: boolean
   editMode?: 'strict' | 'creative'
+  figureStyle?: 'scientific_diagram' | 'scientific_map' | 'scientific_chart'
+}
+
+/**
+ * Base quality instructions applied to ALL image generations
+ * Professional scientific illustrator standards
+ */
+const BASE_QUALITY_INSTRUCTIONS = `[PROFESSIONAL SCIENTIFIC ILLUSTRATOR MODE]
+You are a world-class scientific illustrator with expertise in creating modern, publication-quality figures.
+
+QUALITY STANDARDS:
+- Produce illustrations of the highest professional quality
+- Clean, precise linework with consistent stroke weights
+- Accurate proportions and spatial relationships
+- Harmonious, scientifically appropriate color palettes
+- Crystal-clear typography and labeling
+- Meticulous attention to detail
+- Publication-ready output (Nature, Science journal standards)
+
+MODERN VISUAL STYLE:
+- Contemporary, cutting-edge scientific illustration aesthetic
+- Use 3D rendering and perspective when it enhances understanding
+- Subtle depth, shadows, and lighting for visual impact
+- Modern color gradients and palettes (when scientifically appropriate)
+- Avoid outdated or flat clip-art styles
+- Embrace photorealistic elements when relevant (terrain, ice, water, etc.)
+
+TECHNICAL EXCELLENCE:
+- Sharp, crisp edges with no artifacts
+- Proper visual hierarchy and composition
+- Balanced use of negative space
+- Professional rendering of textures and materials
+- Accurate representation of scientific concepts
+
+SPELLING & ACCURACY:
+- Double-check ALL text, labels, and annotations for spelling errors
+- Verify scientific terminology is correct
+- Ensure numerical values and units are accurate
+
+`
+
+/**
+ * Base instructions for scientific figures (applied regardless of SKIP_PROMPT_ENHANCEMENT)
+ * Specialized for Earth Sciences: geography, glaciology, remote sensing, geomatics
+ * PhD/doctoral publication standards
+ */
+const SCIENTIFIC_BASE_INSTRUCTIONS: Record<string, string> = {
+  scientific_diagram: `[SCIENTIFIC DIAGRAM MODE - Earth Sciences]
+DOMAIN: Geography, Glaciology, Remote Sensing, Geomatics
+PUBLICATION LEVEL: Doctoral thesis, Nature, Science, The Cryosphere, JGR quality
+
+REQUIREMENTS:
+- Clean white or neutral background (no gradients, no artistic effects)
+- Clear, legible labels and text with professional typography (sans-serif preferred)
+- High contrast colors for readability, colorblind-friendly palette
+- Double-check ALL text for spelling errors - scientific credibility depends on this
+- Clear process flows with arrows and labeled components
+- Standard scientific symbology (ISO/cartographic conventions)
+- Vector-like clean lines, consistent line weights
+- Appropriate for peer-reviewed journal submission
+
+EARTH SCIENCE SPECIFICS:
+- Use SI units consistently (m, km, °C, W/m², etc.)
+- Include temporal references when relevant (dates, periods, seasons)
+- Follow glaciological/geoscience notation standards
+
+USER REQUEST: `,
+
+  scientific_map: `[SCIENTIFIC MAP MODE - Earth Sciences/Cartography]
+DOMAIN: Geography, Glaciology, Remote Sensing, Geomatics
+PUBLICATION LEVEL: Doctoral thesis, Nature, Science, The Cryosphere, JGR quality
+
+REQUIREMENTS:
+- Clean white or neutral background
+- MANDATORY: Include scale bar (metric units: m or km)
+- MANDATORY: Include north arrow (standard cartographic symbol)
+- Include legend only if explicitly requested
+- MANDATORY: Projection/coordinate system reference if relevant
+- Clear, legible labels with professional typography
+- High contrast colors, colorblind-friendly color schemes
+- Double-check ALL text for spelling errors (place names, labels)
+- Clean cartographic style following ISO/ICA standards
+
+EARTH SCIENCE SPECIFICS:
+- Appropriate color ramps for elevation, temperature, albedo, etc.
+- Contour lines with proper intervals if showing topography
+- Ice/snow/glacier features using standard glaciological symbology
+- Remote sensing imagery: include acquisition date, sensor, bands info
+- Coordinate grid or graticule when appropriate
+
+USER REQUEST: `,
+
+  scientific_chart: `[SCIENTIFIC CHART MODE - Earth Sciences Data]
+DOMAIN: Geography, Glaciology, Remote Sensing, Geomatics
+PUBLICATION LEVEL: Doctoral thesis, Nature, Science, The Cryosphere, JGR quality
+
+REQUIREMENTS:
+- Clean white or neutral background (no gradients)
+- MANDATORY: Clear axis labels with SI units (°C, m, km², W/m², etc.)
+- MANDATORY: Legend when multiple data series
+- MANDATORY: Error bars or uncertainty indication when showing measured data
+- Grid lines if helpful for reading values
+- Clear, legible text with professional typography (sans-serif)
+- High contrast colors, colorblind-friendly palette
+- Double-check ALL text for spelling errors
+
+EARTH SCIENCE SPECIFICS:
+- Time series: proper date formatting on x-axis, temporal resolution indicated
+- Scatter plots: include R², p-value, regression equation when relevant
+- Box plots/histograms: indicate sample size (n)
+- Remote sensing data: indicate sensor, spectral bands, acquisition period
+- Glaciological data: follow WGMS conventions for mass balance plots
+
+USER REQUEST: `,
 }
 
 /**
@@ -181,8 +295,16 @@ class GeminiClientImpl implements GeminiClient {
       // Prepare the request content with proper structure for multimodal input
       const requestContent: unknown[] = []
 
-      // Build the final prompt - add strict preservation prefix for edit mode
-      let finalPrompt = params.prompt
+      // Build the final prompt with base instructions (applied regardless of SKIP_PROMPT_ENHANCEMENT)
+      // 1. ALWAYS start with professional quality instructions
+      let finalPrompt = BASE_QUALITY_INSTRUCTIONS + params.prompt
+
+      // 2. Add scientific figure instructions if figureStyle is specified
+      if (params.figureStyle && SCIENTIFIC_BASE_INSTRUCTIONS[params.figureStyle]) {
+        finalPrompt = BASE_QUALITY_INSTRUCTIONS + SCIENTIFIC_BASE_INSTRUCTIONS[params.figureStyle] + params.prompt
+      }
+
+      // 3. Add strict preservation prefix for edit mode (can combine with scientific instructions)
       if (params.inputImage && params.editMode === 'strict') {
         // Add explicit preservation instructions directly to the prompt sent to Gemini 3 Pro Image
         const strictPrefix = `[STRICT EDIT MODE - PRESERVE ORIGINAL]
@@ -197,7 +319,7 @@ REQUESTED CHANGE: `
         const strictSuffix = `
 
 REMINDER: Change ONLY what was requested above. Everything else must remain EXACTLY as in the original image.`
-        finalPrompt = strictPrefix + params.prompt + strictSuffix
+        finalPrompt = strictPrefix + finalPrompt + strictSuffix
       }
 
       // Structure the contents properly for image generation/editing
@@ -217,11 +339,11 @@ REMINDER: Change ONLY what was requested above. Everything else must remain EXAC
           ],
         })
       } else {
-        // For text-to-image: provide only text prompt
+        // For text-to-image: provide only text prompt (with any base instructions applied)
         requestContent.push({
           parts: [
             {
-              text: params.prompt,
+              text: finalPrompt,
             },
           ],
         })

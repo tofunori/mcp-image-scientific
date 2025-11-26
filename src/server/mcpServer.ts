@@ -107,63 +107,6 @@ const DEFAULT_CONFIG: MCPServerConfig = {
 }
 
 /**
- * MCP Server instructions for Claude
- */
-const SERVER_INSTRUCTIONS = `# MCP Sci-Banana 🍌 - Scientific Image Generator
-
-## Overview
-This tool generates publication-ready scientific illustrations using Gemini 3 Pro Image.
-
-## Best Practices
-
-### For Scientific Figures
-- Use \`figureStyle\` parameter: "scientific_diagram", "scientific_map", or "scientific_chart"
-- Maps automatically include: scale bar, north arrow, legend
-- Charts automatically include: axis labels with units, legend, grid lines
-- Use \`editMode: "strict"\` when editing figures to preserve original elements
-
-### For Image Editing
-- Always use absolute paths for \`inputImagePath\`
-- Use \`editMode: "strict"\` for precise edits (scientific figures)
-- Use \`editMode: "creative"\` for artistic modifications
-
-### Quality Settings
-- Use \`imageSize: "4K"\` for figures with text/labels requiring clarity
-- Use \`aspectRatio\` to match your publication requirements
-
-### Spelling & Accuracy
-- Double-check all text, labels, and annotations for spelling errors
-- Verify scientific terminology before including in prompts
-
-## Quick Examples
-
-**Scientific diagram:**
-\`\`\`json
-{
-  "prompt": "Diagram of photosynthesis process with labeled components",
-  "figureStyle": "scientific_diagram"
-}
-\`\`\`
-
-**Scientific map:**
-\`\`\`json
-{
-  "prompt": "Map of study area in northern Quebec with sampling sites",
-  "figureStyle": "scientific_map"
-}
-\`\`\`
-
-**Edit existing figure (strict):**
-\`\`\`json
-{
-  "prompt": "Change the title to 'Figure 2: Results'",
-  "inputImagePath": "/absolute/path/to/figure.png",
-  "editMode": "strict"
-}
-\`\`\`
-`
-
-/**
  * Simplified MCP server
  */
 export class MCPServerImpl {
@@ -326,6 +269,54 @@ export class MCPServerImpl {
   }
 
   /**
+   * Get file extension from image data based on magic bytes
+   */
+  private getExtensionFromImageData(imageData: Buffer): string {
+    if (imageData.length < 12) return '.png'
+
+    // PNG: 89 50 4E 47
+    if (
+      imageData[0] === 0x89 &&
+      imageData[1] === 0x50 &&
+      imageData[2] === 0x4e &&
+      imageData[3] === 0x47
+    ) {
+      return '.png'
+    }
+
+    // JPEG: FF D8 FF
+    if (imageData[0] === 0xff && imageData[1] === 0xd8 && imageData[2] === 0xff) {
+      return '.jpg'
+    }
+
+    // GIF: GIF87a or GIF89a
+    if (
+      imageData[0] === 0x47 &&
+      imageData[1] === 0x49 &&
+      imageData[2] === 0x46 &&
+      imageData[3] === 0x38
+    ) {
+      return '.gif'
+    }
+
+    // WEBP: RIFF....WEBP
+    if (
+      imageData[0] === 0x52 &&
+      imageData[1] === 0x49 &&
+      imageData[2] === 0x46 &&
+      imageData[3] === 0x46 &&
+      imageData[8] === 0x57 &&
+      imageData[9] === 0x45 &&
+      imageData[10] === 0x42 &&
+      imageData[11] === 0x50
+    ) {
+      return '.webp'
+    }
+
+    return '.png' // Default
+  }
+
+  /**
    * Simplified image generation handler
    */
   private async handleGenerateImage(params: GenerateImageParams) {
@@ -448,6 +439,7 @@ export class MCPServerImpl {
         ...(params.imageSize && { imageSize: params.imageSize }),
         ...(params.useGoogleSearch !== undefined && { useGoogleSearch: params.useGoogleSearch }),
         ...(params.editMode && { editMode: params.editMode }),
+        ...(params.figureStyle && { figureStyle: params.figureStyle }),
       })
 
       if (!generationResult.success) {
@@ -455,7 +447,25 @@ export class MCPServerImpl {
       }
 
       // Save image file with correct extension based on actual image format
-      const fileName = params.fileName || this.fileManager.generateFileName(generationResult.data.imageData)
+      let fileName: string
+      if (params.fileName) {
+        // User provided a filename - ensure extension matches actual image format
+        const actualExtension = this.getExtensionFromImageData(generationResult.data.imageData)
+        const baseName = params.fileName.replace(/\.[^/.]+$/, '') // Remove existing extension
+        fileName = baseName + actualExtension
+
+        // Warn if user's extension didn't match
+        const userExtension = path.extname(params.fileName).toLowerCase()
+        if (userExtension && userExtension !== actualExtension) {
+          this.logger.warn('mcp-server', 'Filename extension corrected', {
+            requested: params.fileName,
+            actual: fileName,
+            reason: `Gemini returned ${actualExtension} format`,
+          })
+        }
+      } else {
+        fileName = this.fileManager.generateFileName(generationResult.data.imageData)
+      }
       const outputPath = path.join(configResult.data.imageOutputDir, fileName)
 
       const sanitizedPath = this.securityManager.sanitizeFilePath(outputPath)
@@ -495,7 +505,6 @@ export class MCPServerImpl {
         capabilities: {
           tools: {},
         },
-        instructions: SERVER_INSTRUCTIONS,
       }
     )
 

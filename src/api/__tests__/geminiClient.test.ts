@@ -4,6 +4,41 @@ import type { Config } from '../../utils/config'
 import { GeminiAPIError, NetworkError } from '../../utils/errors'
 import { createGeminiClient } from '../geminiClient'
 
+// Expected prefix that is added to ALL prompts
+const BASE_QUALITY_PREFIX = `[PROFESSIONAL SCIENTIFIC ILLUSTRATOR MODE]
+You are a world-class scientific illustrator with expertise in creating modern, publication-quality figures.
+
+QUALITY STANDARDS:
+- Produce illustrations of the highest professional quality
+- Clean, precise linework with consistent stroke weights
+- Accurate proportions and spatial relationships
+- Harmonious, scientifically appropriate color palettes
+- Crystal-clear typography and labeling
+- Meticulous attention to detail
+- Publication-ready output (Nature, Science journal standards)
+
+MODERN VISUAL STYLE:
+- Contemporary, cutting-edge scientific illustration aesthetic
+- Use 3D rendering and perspective when it enhances understanding
+- Subtle depth, shadows, and lighting for visual impact
+- Modern color gradients and palettes (when scientifically appropriate)
+- Avoid outdated or flat clip-art styles
+- Embrace photorealistic elements when relevant (terrain, ice, water, etc.)
+
+TECHNICAL EXCELLENCE:
+- Sharp, crisp edges with no artifacts
+- Proper visual hierarchy and composition
+- Balanced use of negative space
+- Professional rendering of textures and materials
+- Accurate representation of scientific concepts
+
+SPELLING & ACCURACY:
+- Double-check ALL text, labels, and annotations for spelling errors
+- Verify scientific terminology is correct
+- Ensure numerical values and units are accurate
+
+`
+
 // Mock @google/genai
 vi.mock('@google/genai', () => ({
   GoogleGenAI: vi.fn(),
@@ -163,7 +198,7 @@ describe('geminiClient', () => {
                 },
               },
               {
-                text: 'Enhance this image',
+                text: BASE_QUALITY_PREFIX + 'Enhance this image',
               },
             ],
           },
@@ -497,7 +532,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate character with blending',
+                text: BASE_QUALITY_PREFIX + 'Generate character with blending',
               },
             ],
           },
@@ -558,7 +593,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate factually accurate historical scene',
+                text: BASE_QUALITY_PREFIX + 'Generate factually accurate historical scene',
               },
             ],
           },
@@ -618,7 +653,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate simple landscape',
+                text: BASE_QUALITY_PREFIX + 'Generate simple landscape',
               },
             ],
           },
@@ -691,7 +726,7 @@ describe('geminiClient', () => {
                 },
               },
               {
-                text: 'Blend this character with fantasy elements',
+                text: BASE_QUALITY_PREFIX + 'Blend this character with fantasy elements',
               },
             ],
           },
@@ -747,7 +782,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'test prompt for aspect ratio',
+                text: BASE_QUALITY_PREFIX + 'test prompt for aspect ratio',
               },
             ],
           },
@@ -801,7 +836,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'test prompt without aspect ratio',
+                text: BASE_QUALITY_PREFIX + 'test prompt without aspect ratio',
               },
             ],
           },
@@ -858,7 +893,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'test prompt with 21:9 aspect ratio',
+                text: BASE_QUALITY_PREFIX + 'test prompt with 21:9 aspect ratio',
               },
             ],
           },
@@ -915,7 +950,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate current 2025 weather map of Tokyo',
+                text: BASE_QUALITY_PREFIX + 'Generate current 2025 weather map of Tokyo',
               },
             ],
           },
@@ -970,7 +1005,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate creative fantasy landscape',
+                text: BASE_QUALITY_PREFIX + 'Generate creative fantasy landscape',
               },
             ],
           },
@@ -1027,7 +1062,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate image without grounding',
+                text: BASE_QUALITY_PREFIX + 'Generate image without grounding',
               },
             ],
           },
@@ -1087,7 +1122,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: 'Generate 2025 Japan foodtech industry chaos map',
+                text: BASE_QUALITY_PREFIX + 'Generate 2025 Japan foodtech industry chaos map',
               },
             ],
           },
