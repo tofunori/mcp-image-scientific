@@ -397,8 +397,8 @@ export class MCPServerImpl {
         throw generationResult.error
       }
 
-      // Save image file
-      const fileName = params.fileName || this.fileManager.generateFileName()
+      // Save image file with correct extension based on actual image format
+      const fileName = params.fileName || this.fileManager.generateFileName(generationResult.data.imageData)
       const outputPath = path.join(configResult.data.imageOutputDir, fileName)
 
       const sanitizedPath = this.securityManager.sanitizeFilePath(outputPath)

@@ -14,6 +14,61 @@ const FILE_NAME_PREFIX = 'image' as const
 const DEFAULT_EXTENSION = '.png' as const
 const RANDOM_RANGE = 1000 as const
 
+/**
+ * Detect image format from magic bytes and return appropriate extension
+ * @param buffer - Image data buffer
+ * @returns File extension including dot (e.g., '.png', '.jpg')
+ */
+function getExtensionFromMagicBytes(buffer: Buffer): string {
+  if (buffer.length < 12) return DEFAULT_EXTENSION
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return '.png'
+  }
+
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return '.jpg'
+  }
+
+  // GIF: GIF87a or GIF89a
+  if (
+    buffer[0] === 0x47 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x38
+  ) {
+    return '.gif'
+  }
+
+  // BMP: BM
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return '.bmp'
+  }
+
+  // WEBP: RIFF....WEBP
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return '.webp'
+  }
+
+  return DEFAULT_EXTENSION
+}
+
 const ERROR_MESSAGES = {
   SAVE_FAILED: 'Failed to save image file',
   DIRECTORY_CREATION_FAILED: 'Failed to create directory',
@@ -31,7 +86,7 @@ export interface FileManager {
     format?: string
   ): Promise<Result<string, FileOperationError>>
   ensureDirectoryExists(dirPath: string): Result<void, FileOperationError>
-  generateFileName(): string
+  generateFileName(imageData?: Buffer): string
 }
 
 /**
@@ -55,12 +110,14 @@ function ensureDirectoryExists(dirPath: string): Result<void, FileOperationError
 
 /**
  * Generates a unique filename based on timestamp and random component
- * @returns Generated filename in the format: gemini-image-{timestamp}.png
+ * @param imageData Optional buffer to detect actual image format
+ * @returns Generated filename with correct extension based on actual image format
  */
-function generateFileName(): string {
+function generateFileName(imageData?: Buffer): string {
   const timestamp = Date.now()
   const random = Math.floor(Math.random() * RANDOM_RANGE)
-  return `${FILE_NAME_PREFIX}-${timestamp}-${random}${DEFAULT_EXTENSION}`
+  const extension = imageData ? getExtensionFromMagicBytes(imageData) : DEFAULT_EXTENSION
+  return `${FILE_NAME_PREFIX}-${timestamp}-${random}${extension}`
 }
 
 /**
