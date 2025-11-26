@@ -390,6 +390,7 @@ export class MCPServerImpl {
         ...(params.aspectRatio && { aspectRatio: params.aspectRatio }),
         ...(params.imageSize && { imageSize: params.imageSize }),
         ...(params.useGoogleSearch !== undefined && { useGoogleSearch: params.useGoogleSearch }),
+        ...(params.editMode && { editMode: params.editMode }),
       })
 
       if (!generationResult.success) {

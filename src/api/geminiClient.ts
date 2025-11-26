@@ -146,6 +146,7 @@ export interface GeminiApiParams {
   aspectRatio?: string
   imageSize?: string
   useGoogleSearch?: boolean
+  editMode?: 'strict' | 'creative'
 }
 
 /**
@@ -180,6 +181,25 @@ class GeminiClientImpl implements GeminiClient {
       // Prepare the request content with proper structure for multimodal input
       const requestContent: unknown[] = []
 
+      // Build the final prompt - add strict preservation prefix for edit mode
+      let finalPrompt = params.prompt
+      if (params.inputImage && params.editMode === 'strict') {
+        // Add explicit preservation instructions directly to the prompt sent to Gemini 3 Pro Image
+        const strictPrefix = `[STRICT EDIT MODE - PRESERVE ORIGINAL]
+CRITICAL INSTRUCTION: Make ONLY the specific change described below. Do NOT modify anything else.
+- DO NOT change the background, colors, lighting, shadows, or atmosphere
+- DO NOT move, resize, or alter any element not explicitly mentioned
+- DO NOT enhance, improve, or "fix" anything
+- DO NOT add artistic interpretation or effects
+- PRESERVE exact positions, sizes, and appearance of all unchanged elements
+
+REQUESTED CHANGE: `
+        const strictSuffix = `
+
+REMINDER: Change ONLY what was requested above. Everything else must remain EXACTLY as in the original image.`
+        finalPrompt = strictPrefix + params.prompt + strictSuffix
+      }
+
       // Structure the contents properly for image generation/editing
       if (params.inputImage) {
         // For image editing: provide image first, then text instructions
@@ -192,7 +212,7 @@ class GeminiClientImpl implements GeminiClient {
               },
             },
             {
-              text: params.prompt,
+              text: finalPrompt,
             },
           ],
         })

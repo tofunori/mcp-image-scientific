@@ -47,16 +47,31 @@ IMPORTANT: An input image has been provided. Your task is to:
  */
 const STRICT_EDITING_CONTEXT = `
 
-CRITICAL: STRICT EDITING MODE - Maximum fidelity to original image required.
+CRITICAL: ULTRA-STRICT EDITING MODE - ABSOLUTE PRESERVATION REQUIRED
 
-You MUST:
-1. PRESERVE EXACTLY: All colors, positions, text, labels, layout, proportions, and every visual element
-2. ONLY MODIFY: The specific element or change explicitly requested by the user
-3. DO NOT: Add artistic interpretation, enhance lighting, change composition, or modify anything not explicitly requested
-4. MAINTAIN: Exact pixel-level fidelity for all unchanged areas
-5. USE PHRASES: "keeping all other elements exactly as they appear", "modifying only...", "preserving the exact position and appearance of..."
+⚠️ WARNING: This is a precision editing task. ANY modification beyond what is explicitly requested is UNACCEPTABLE.
 
-This is for scientific/technical image editing where precision is critical. Any unauthorized modification is unacceptable.`
+ABSOLUTE RULES:
+1. DO NOT CHANGE: Background, colors, lighting, shadows, textures, positions, sizes, proportions, orientation, style, atmosphere, or ANY visual element not explicitly mentioned in the request
+2. DO NOT ENHANCE: No "improving" image quality, no adjusting contrast, no color correction, no sharpening, no artistic interpretation
+3. DO NOT ADD: No new elements, no decorations, no artistic flourishes, no "improvements"
+4. DO NOT REMOVE: Nothing except what is explicitly requested to be removed
+5. ONLY MODIFY: The EXACT element or change specified - nothing more, nothing less
+
+YOUR PROMPT MUST:
+- Start with: "IMPORTANT: Modify ONLY [specific change] while keeping EVERYTHING else EXACTLY as it appears in the original image."
+- Include explicit preservation instructions: "Do not change the background. Do not change the lighting. Do not change the colors. Do not change positions or sizes of other elements."
+- End with: "All other pixels, elements, and visual characteristics must remain IDENTICAL to the original."
+
+FORBIDDEN ACTIONS:
+❌ Changing background colors or textures
+❌ Adjusting lighting or shadows
+❌ Moving or resizing elements not mentioned
+❌ Adding artistic effects or interpretations
+❌ "Enhancing" or "improving" any aspect
+❌ Changing the style or atmosphere
+
+This is for scientific/technical image editing where precision is critical. Treat this like surgical editing - touch ONLY what is specified.`
 
 /**
  * Scientific figure system prompt for publication-ready illustrations
@@ -213,7 +228,11 @@ export class StructuredPromptGeneratorImpl implements StructuredPromptGenerator 
     // Add image editing context if an input image is provided
     const imageEditingInstruction = hasInputImage
       ? features.editMode === 'strict'
-        ? `\nCRITICAL: An input image has been provided. You MUST preserve EVERYTHING exactly as it appears, modifying ONLY what the user explicitly requests. No artistic interpretation allowed.\n`
+        ? `\n⚠️ ULTRA-STRICT EDIT MODE: An input image has been provided. You MUST:
+- Output a prompt that starts with "IMPORTANT: Modify ONLY [specific change requested] while keeping EVERYTHING else EXACTLY as it appears."
+- Explicitly list what must NOT change: background, colors, lighting, shadows, positions, sizes, textures, style
+- Forbid any enhancement, artistic interpretation, or "improvement"
+- The prompt must make clear that ONLY the user's specific request should change - nothing else.\n`
         : `\nNOTE: An input image has been provided. Focus on preserving its original characteristics while applying the requested modifications. Maintain consistency with the source image's style, colors, and atmosphere.\n`
       : ''
 
@@ -260,7 +279,14 @@ Now transform the user's request with similar attention to detail and creative e
     // Strict editing instruction for scientific images
     const editingInstruction = hasInputImage
       ? features.editMode === 'strict'
-        ? `\nSTRICT EDITING: An input image is provided. Preserve ALL existing elements exactly. Only apply the specific modification requested. Do not add artistic effects or change anything else.\n`
+        ? `\n⚠️ ULTRA-STRICT SCIENTIFIC EDITING: An input image is provided.
+ABSOLUTE REQUIREMENTS:
+- Modify ONLY the exact element specified in the request
+- DO NOT change: background color, axis labels, legend positions, font sizes, line styles, colors of other elements, grid lines, scale, data points not mentioned
+- DO NOT "improve" or "enhance" anything
+- DO NOT add artistic effects
+- Preserve EXACT pixel positions of all unchanged elements
+- Output a prompt that explicitly forbids changing anything except what was requested\n`
         : `\nEDITING: An input image is provided. Maintain the scientific style and accuracy while applying the requested changes.\n`
       : ''
 
