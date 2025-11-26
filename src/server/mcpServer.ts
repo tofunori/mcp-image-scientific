@@ -107,6 +107,63 @@ const DEFAULT_CONFIG: MCPServerConfig = {
 }
 
 /**
+ * MCP Server instructions for Claude
+ */
+const SERVER_INSTRUCTIONS = `# MCP Sci-Banana 🍌 - Scientific Image Generator
+
+## Overview
+This tool generates publication-ready scientific illustrations using Gemini 3 Pro Image.
+
+## Best Practices
+
+### For Scientific Figures
+- Use \`figureStyle\` parameter: "scientific_diagram", "scientific_map", or "scientific_chart"
+- Maps automatically include: scale bar, north arrow, legend
+- Charts automatically include: axis labels with units, legend, grid lines
+- Use \`editMode: "strict"\` when editing figures to preserve original elements
+
+### For Image Editing
+- Always use absolute paths for \`inputImagePath\`
+- Use \`editMode: "strict"\` for precise edits (scientific figures)
+- Use \`editMode: "creative"\` for artistic modifications
+
+### Quality Settings
+- Use \`imageSize: "4K"\` for figures with text/labels requiring clarity
+- Use \`aspectRatio\` to match your publication requirements
+
+### Spelling & Accuracy
+- Double-check all text, labels, and annotations for spelling errors
+- Verify scientific terminology before including in prompts
+
+## Quick Examples
+
+**Scientific diagram:**
+\`\`\`json
+{
+  "prompt": "Diagram of photosynthesis process with labeled components",
+  "figureStyle": "scientific_diagram"
+}
+\`\`\`
+
+**Scientific map:**
+\`\`\`json
+{
+  "prompt": "Map of study area in northern Quebec with sampling sites",
+  "figureStyle": "scientific_map"
+}
+\`\`\`
+
+**Edit existing figure (strict):**
+\`\`\`json
+{
+  "prompt": "Change the title to 'Figure 2: Results'",
+  "inputImagePath": "/absolute/path/to/figure.png",
+  "editMode": "strict"
+}
+\`\`\`
+`
+
+/**
  * Simplified MCP server
  */
 export class MCPServerImpl {
@@ -438,6 +495,7 @@ export class MCPServerImpl {
         capabilities: {
           tools: {},
         },
+        instructions: SERVER_INSTRUCTIONS,
       }
     )
 
