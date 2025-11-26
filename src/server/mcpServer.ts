@@ -6,6 +6,67 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+
+/**
+ * Detect actual MIME type from image file magic bytes
+ * @param buffer - Image file buffer
+ * @returns Detected MIME type or undefined if unknown
+ */
+function detectMimeTypeFromMagicBytes(buffer: Buffer): string | undefined {
+  if (buffer.length < 12) return undefined
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return 'image/png'
+  }
+
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg'
+  }
+
+  // GIF: GIF87a or GIF89a
+  if (
+    buffer[0] === 0x47 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x38 &&
+    (buffer[4] === 0x37 || buffer[4] === 0x39) &&
+    buffer[5] === 0x61
+  ) {
+    return 'image/gif'
+  }
+
+  // BMP: BM
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return 'image/bmp'
+  }
+
+  // WEBP: RIFF....WEBP
+  if (
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50
+  ) {
+    return 'image/webp'
+  }
+
+  return undefined
+}
 import {
   CallToolRequestSchema,
   type CallToolResult,
@@ -233,17 +294,42 @@ export class MCPServerImpl {
       if (params.inputImagePath) {
         const imageBuffer = await fs.readFile(params.inputImagePath)
         inputImageData = imageBuffer.toString('base64')
-        // Detect MIME type from file extension
-        const ext = path.extname(params.inputImagePath).toLowerCase()
-        const mimeTypes: Record<string, string> = {
-          '.jpg': 'image/jpeg',
-          '.jpeg': 'image/jpeg',
-          '.png': 'image/png',
-          '.webp': 'image/webp',
-          '.gif': 'image/gif',
-          '.bmp': 'image/bmp',
+        // Detect MIME type from magic bytes (actual file content)
+        const detectedMimeType = detectMimeTypeFromMagicBytes(imageBuffer)
+        if (detectedMimeType) {
+          inputImageMimeType = detectedMimeType
+          // Log warning if extension doesn't match actual format
+          const ext = path.extname(params.inputImagePath).toLowerCase()
+          const extensionMimeTypes: Record<string, string> = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.webp': 'image/webp',
+            '.gif': 'image/gif',
+            '.bmp': 'image/bmp',
+          }
+          const expectedMimeType = extensionMimeTypes[ext]
+          if (expectedMimeType && expectedMimeType !== detectedMimeType) {
+            this.logger.warn('mcp-server', 'File extension mismatch', {
+              path: params.inputImagePath,
+              extension: ext,
+              expectedMimeType,
+              actualMimeType: detectedMimeType,
+            })
+          }
+        } else {
+          // Fallback to extension-based detection if magic bytes fail
+          const ext = path.extname(params.inputImagePath).toLowerCase()
+          const mimeTypes: Record<string, string> = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.webp': 'image/webp',
+            '.gif': 'image/gif',
+            '.bmp': 'image/bmp',
+          }
+          inputImageMimeType = mimeTypes[ext] || 'image/png'
         }
-        inputImageMimeType = mimeTypes[ext] || 'image/png'
       }
 
       // Generate structured prompt using Gemini 2.0 Flash (unless skipped)
