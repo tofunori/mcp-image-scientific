@@ -4,7 +4,7 @@
 [![Node 20+](https://img.shields.io/badge/Node-20%2B-green.svg)](https://nodejs.org/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io/)
 
-**MCP server for publication-quality scientific figures** — diagrams, charts, and maps with structured prompts and strict editing. Powered by Gemini 2.0 Flash Image.
+**MCP server for publication-quality scientific figures** — diagrams, charts, and maps with structured prompts and strict editing. Works with Claude Code, GitHub Copilot, Cursor, and Codex. Powered by Gemini.
 
 > Forked from [shinpr/mcp-image](https://github.com/shinpr/mcp-image), extended with scientific figure styles (`scientific_diagram`, `scientific_chart`, `scientific_map`), strict edit mode, and structured prompt pipelines for academic publishing.
 
@@ -93,6 +93,25 @@ claude mcp add mcp-image \
   }
 }
 ```
+
+**GitHub Copilot (VS Code)** — add to `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
+    "mcp-image": {
+      "command": "npx",
+      "args": ["-y", "mcp-image-scientific"],
+      "env": {
+        "GEMINI_API_KEY": "your-api-key",
+        "IMAGE_OUTPUT_DIR": "/absolute/path/to/images"
+      }
+    }
+  }
+}
+```
+
+> After saving, click the **Start** button that appears to initialize the server.
 
 **Codex** — add to `~/.codex/config.toml`:
 
