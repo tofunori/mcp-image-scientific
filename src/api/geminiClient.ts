@@ -284,7 +284,7 @@ export interface GeminiClient {
  * Implementation of Gemini API client
  */
 class GeminiClientImpl implements GeminiClient {
-  private readonly modelName = 'gemini-3-pro-image-preview'
+  private readonly modelName = 'gemini-3.1-flash-image-preview'
 
   constructor(private readonly genai: GeminiClientInstance) {}
 
