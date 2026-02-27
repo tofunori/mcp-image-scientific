@@ -301,7 +301,10 @@ class GeminiClientImpl implements GeminiClient {
 
       // 2. Add scientific figure instructions if figureStyle is specified
       if (params.figureStyle && SCIENTIFIC_BASE_INSTRUCTIONS[params.figureStyle]) {
-        finalPrompt = BASE_QUALITY_INSTRUCTIONS + SCIENTIFIC_BASE_INSTRUCTIONS[params.figureStyle] + params.prompt
+        finalPrompt =
+          BASE_QUALITY_INSTRUCTIONS +
+          SCIENTIFIC_BASE_INSTRUCTIONS[params.figureStyle] +
+          params.prompt
       }
 
       // 3. Add strict preservation prefix for edit mode (can combine with scientific instructions)

@@ -317,7 +317,10 @@ class GeminiTextClientImpl implements GeminiTextClient {
  * @param config Configuration containing API key and settings
  * @returns Result containing the client or an error
  */
-export function createGeminiTextClient(config: Config, modelOverride?: string): Result<GeminiTextClient, GeminiAPIError> {
+export function createGeminiTextClient(
+  config: Config,
+  modelOverride?: string
+): Result<GeminiTextClient, GeminiAPIError> {
   try {
     return Ok(new GeminiTextClientImpl(config, modelOverride))
   } catch (error) {

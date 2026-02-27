@@ -173,15 +173,12 @@ export class StructuredPromptGeneratorImpl implements StructuredPromptGenerator 
       const completePrompt = this.buildCompletePrompt(userPrompt, features, !!inputImageData)
 
       // Build system instruction based on mode
-      let systemInstruction = features.figureStyle
-        ? SCIENTIFIC_FIGURE_PROMPT
-        : SYSTEM_PROMPT
+      let systemInstruction = features.figureStyle ? SCIENTIFIC_FIGURE_PROMPT : SYSTEM_PROMPT
 
       // Add editing context if input image is provided
       if (inputImageData) {
-        systemInstruction += features.editMode === 'strict'
-          ? STRICT_EDITING_CONTEXT
-          : IMAGE_EDITING_CONTEXT
+        systemInstruction +=
+          features.editMode === 'strict' ? STRICT_EDITING_CONTEXT : IMAGE_EDITING_CONTEXT
       }
 
       // Generate structured prompt using Gemini 2.0 Flash via pure API call
@@ -270,7 +267,8 @@ Now transform the user's request with similar attention to detail and creative e
   ): string {
     const figureTypeDescription = {
       scientific_diagram: 'a scientific diagram showing processes, concepts, or relationships',
-      scientific_map: 'a scientific map with proper cartographic elements (scale, north arrow, legend)',
+      scientific_map:
+        'a scientific map with proper cartographic elements (scale, north arrow, legend)',
       scientific_chart: 'a scientific chart or data visualization with clear axes and labels',
     }
 
@@ -289,7 +287,7 @@ ABSOLUTE REQUIREMENTS:
 - DO NOT add artistic effects
 - Preserve EXACT pixel positions of all unchanged elements
 - Output a prompt that explicitly forbids changing anything except what was requested\n`
-        : `\nEDITING: An input image is provided. Maintain the scientific style and accuracy while applying the requested changes.\n`
+        : '\nEDITING: An input image is provided. Maintain the scientific style and accuracy while applying the requested changes.\n'
       : ''
 
     return `Create ${typeDesc} for a high-impact scientific publication (Nature, Science quality).
@@ -304,9 +302,9 @@ REQUIREMENTS:
 - No decorative or artistic embellishments
 - Suitable for print in academic journals
 
-${features.figureStyle === 'scientific_map' ? `MAP ELEMENTS: Include scale bar, north arrow if relevant, and legend for any symbols or color coding.` : ''}
-${features.figureStyle === 'scientific_chart' ? `CHART ELEMENTS: Include clear axis labels with units, legend if multiple data series, appropriate grid lines.` : ''}
-${features.figureStyle === 'scientific_diagram' ? `DIAGRAM ELEMENTS: Use clear arrows for flow/relationships, label all components, maintain logical spatial organization.` : ''}
+${features.figureStyle === 'scientific_map' ? 'MAP ELEMENTS: Include scale bar, north arrow if relevant, and legend for any symbols or color coding.' : ''}
+${features.figureStyle === 'scientific_chart' ? 'CHART ELEMENTS: Include clear axis labels with units, legend if multiple data series, appropriate grid lines.' : ''}
+${features.figureStyle === 'scientific_diagram' ? 'DIAGRAM ELEMENTS: Use clear arrows for flow/relationships, label all components, maintain logical spatial organization.' : ''}
 
 Transform this request into a precise, technical description that will produce a publication-quality scientific figure.`
   }

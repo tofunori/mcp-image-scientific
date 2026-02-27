@@ -34,9 +34,9 @@ export type ImageSize = '2K' | '4K'
  * Optimized for environmental sciences, glaciology, and remote sensing
  */
 export type FigureStyle =
-  | 'scientific_diagram'  // Schémas, processus, concepts scientifiques
-  | 'scientific_map'      // Cartes avec éléments standards (échelle, nord, légende)
-  | 'scientific_chart'    // Graphiques, visualisations de données
+  | 'scientific_diagram' // Schémas, processus, concepts scientifiques
+  | 'scientific_map' // Cartes avec éléments standards (échelle, nord, légende)
+  | 'scientific_chart' // Graphiques, visualisations de données
 
 /**
  * Edit mode for image modification

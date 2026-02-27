@@ -13,7 +13,7 @@ import {
   MAP_CHECKS,
   getChecksForStyle,
 } from '../../types/qa'
-import { Ok, Err } from '../../types/result'
+import { Err, Ok } from '../../types/result'
 import { GeminiAPIError } from '../../utils/errors'
 import { buildRetryPatch, createScientificQaValidator } from '../scientificQaValidator'
 

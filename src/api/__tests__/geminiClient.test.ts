@@ -198,7 +198,7 @@ describe('geminiClient', () => {
                 },
               },
               {
-                text: BASE_QUALITY_PREFIX + 'Enhance this image',
+                text: `${BASE_QUALITY_PREFIX}Enhance this image`,
               },
             ],
           },
@@ -532,7 +532,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate character with blending',
+                text: `${BASE_QUALITY_PREFIX}Generate character with blending`,
               },
             ],
           },
@@ -593,7 +593,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate factually accurate historical scene',
+                text: `${BASE_QUALITY_PREFIX}Generate factually accurate historical scene`,
               },
             ],
           },
@@ -653,7 +653,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate simple landscape',
+                text: `${BASE_QUALITY_PREFIX}Generate simple landscape`,
               },
             ],
           },
@@ -726,7 +726,7 @@ describe('geminiClient', () => {
                 },
               },
               {
-                text: BASE_QUALITY_PREFIX + 'Blend this character with fantasy elements',
+                text: `${BASE_QUALITY_PREFIX}Blend this character with fantasy elements`,
               },
             ],
           },
@@ -782,7 +782,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'test prompt for aspect ratio',
+                text: `${BASE_QUALITY_PREFIX}test prompt for aspect ratio`,
               },
             ],
           },
@@ -836,7 +836,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'test prompt without aspect ratio',
+                text: `${BASE_QUALITY_PREFIX}test prompt without aspect ratio`,
               },
             ],
           },
@@ -893,7 +893,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'test prompt with 21:9 aspect ratio',
+                text: `${BASE_QUALITY_PREFIX}test prompt with 21:9 aspect ratio`,
               },
             ],
           },
@@ -950,7 +950,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate current 2025 weather map of Tokyo',
+                text: `${BASE_QUALITY_PREFIX}Generate current 2025 weather map of Tokyo`,
               },
             ],
           },
@@ -1005,7 +1005,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate creative fantasy landscape',
+                text: `${BASE_QUALITY_PREFIX}Generate creative fantasy landscape`,
               },
             ],
           },
@@ -1062,7 +1062,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate image without grounding',
+                text: `${BASE_QUALITY_PREFIX}Generate image without grounding`,
               },
             ],
           },
@@ -1122,7 +1122,7 @@ describe('geminiClient', () => {
           {
             parts: [
               {
-                text: BASE_QUALITY_PREFIX + 'Generate 2025 Japan foodtech industry chaos map',
+                text: `${BASE_QUALITY_PREFIX}Generate 2025 Japan foodtech industry chaos map`,
               },
             ],
           },

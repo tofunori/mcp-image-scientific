@@ -279,10 +279,16 @@ export class MCPServerImpl {
 
     // Initialize QA Validator with dedicated Pro model for stricter evaluation
     if (!this.qaValidator && configResult.data.enableScientificQa) {
-      const qaClientResult = createGeminiTextClient(configResult.data, configResult.data.scientificQaModel)
+      const qaClientResult = createGeminiTextClient(
+        configResult.data,
+        configResult.data.scientificQaModel
+      )
       if (qaClientResult.success) {
         this.qaValidator = createScientificQaValidator(qaClientResult.data)
-        this.logger.info('mcp-server', `QA validator initialized with ${configResult.data.scientificQaModel}`)
+        this.logger.info(
+          'mcp-server',
+          `QA validator initialized with ${configResult.data.scientificQaModel}`
+        )
       } else {
         this.logger.warn('mcp-server', 'Failed to initialize QA validator', {
           error: qaClientResult.error.message,
@@ -458,10 +464,16 @@ export class MCPServerImpl {
 
       // Initialize QA validator on-demand if validateQa is requested but QA was not globally enabled
       if (params.validateQa && !this.qaValidator && params.figureStyle) {
-        const qaClientResult = createGeminiTextClient(configResult.data, configResult.data.scientificQaModel)
+        const qaClientResult = createGeminiTextClient(
+          configResult.data,
+          configResult.data.scientificQaModel
+        )
         if (qaClientResult.success) {
           this.qaValidator = createScientificQaValidator(qaClientResult.data)
-          this.logger.info('mcp-server', `QA validator initialized on-demand with ${configResult.data.scientificQaModel}`)
+          this.logger.info(
+            'mcp-server',
+            `QA validator initialized on-demand with ${configResult.data.scientificQaModel}`
+          )
         }
       }
 
