@@ -215,6 +215,11 @@ export class MCPServerImpl {
                   'Edit mode for image modification. Use "strict" to preserve everything exactly except the specific change requested (recommended for scientific figures). Use "creative" for artistic interpretation. Default is "creative".',
                 enum: ['strict', 'creative'],
               },
+              validateQa: {
+                type: 'boolean' as const,
+                description:
+                  'Run QA validation on this generation. Evaluates the figure against publication-quality criteria (spelling, labels, legend, contrast). Requires figureStyle to be set.',
+              },
             },
             required: ['prompt'],
           },
@@ -451,10 +456,19 @@ export class MCPServerImpl {
         throw new Error('Gemini client not initialized')
       }
 
+      // Initialize QA validator on-demand if validateQa is requested but QA was not globally enabled
+      if (params.validateQa && !this.qaValidator && params.figureStyle) {
+        const qaClientResult = createGeminiTextClient(configResult.data, configResult.data.scientificQaModel)
+        if (qaClientResult.success) {
+          this.qaValidator = createScientificQaValidator(qaClientResult.data)
+          this.logger.info('mcp-server', `QA validator initialized on-demand with ${configResult.data.scientificQaModel}`)
+        }
+      }
+
       // Determine if QA validation should run
       const qaEnabled =
         params.figureStyle !== undefined &&
-        configResult.data.enableScientificQa &&
+        (configResult.data.enableScientificQa || params.validateQa === true) &&
         this.qaValidator !== null
 
       const maxAttempts = qaEnabled ? configResult.data.scientificQaMaxRetries + 1 : 1

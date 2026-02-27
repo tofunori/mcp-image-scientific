@@ -137,6 +137,7 @@ Single tool for all image operations. Two-stage process: prompt optimization (Ge
 | `maintainCharacterConsistency` | boolean | — | Keep character appearance across generations |
 | `useWorldKnowledge` | boolean | — | Real-world knowledge for landmarks, historical figures |
 | `useGoogleSearch` | boolean | — | Google Search grounding for time-sensitive facts |
+| `validateQa` | boolean | — | Run QA validation on this figure (requires `figureStyle`) |
 
 ### `figureStyle` Details
 
@@ -174,9 +175,12 @@ inputImagePath: "/path/to/existing-chart.png"
 
 ## QA Validation
 
-Opt-in post-generation quality assurance powered by Gemini 3.1 Pro. When enabled, every scientific figure is evaluated against style-specific criteria before delivery.
+Post-generation quality assurance powered by Gemini 3.1 Pro. Evaluates scientific figures against style-specific criteria before delivery.
 
-Enable with `SCIENTIFIC_QA_ENABLED=true`.
+Two ways to enable:
+
+1. **Per-request** — just ask: *"Generate a chart and validate it"* → the assistant passes `validateQa: true`
+2. **Globally** — set `SCIENTIFIC_QA_ENABLED=true` to validate every scientific figure automatically
 
 **Hard checks** (must pass — triggers automatic retry on failure):
 - Spelling accuracy, text readability, clean background, sufficient contrast

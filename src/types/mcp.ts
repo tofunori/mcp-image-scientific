@@ -75,6 +75,8 @@ export interface GenerateImageParams {
   figureStyle?: FigureStyle
   /** Edit mode: "strict" preserves original exactly except requested changes, "creative" allows artistic interpretation (default: "creative") */
   editMode?: EditMode
+  /** Run QA validation on this generation (overrides SCIENTIFIC_QA_ENABLED) */
+  validateQa?: boolean
 }
 
 /**
