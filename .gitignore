@@ -53,3 +53,5 @@ docs/
 # Language-specific files (excluded from version control)
 CLAUDE.md
 .claude/
+# Local runner script (may contain secrets)
+run-mcp.sh

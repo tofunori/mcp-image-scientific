@@ -284,4 +284,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Need help?** [Open an issue](https://github.com/shinpr/mcp-image/issues) or check the [troubleshooting section](#-troubleshooting) above.
+**Need help?** [Open an issue](https://github.com/tofunori/mcp-image-scientific/issues) or check the [troubleshooting section](#-troubleshooting) above.

@@ -1,6 +1,6 @@
 {
-  "name": "mcp-image",
-  "mcpName": "io.github.shinpr/mcp-image",
+  "name": "mcp-image-scientific",
+  "mcpName": "io.github.tofunori/mcp-image-scientific",
   "version": "0.4.2",
   "description": "MCP server for AI image generation",
   "main": "dist/index.js",
@@ -23,11 +23,11 @@
     "codex",
     "typescript"
   ],
-  "author": "Shinsuke Kagawa",
+  "author": "Thierry Nori",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/shinpr/mcp-image.git"
+    "url": "https://github.com/tofunori/mcp-image-scientific.git"
   },
   "files": [
     "dist/**/*",

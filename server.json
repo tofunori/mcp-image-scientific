@@ -1,11 +1,11 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
-  "name": "io.github.shinpr/mcp-image",
+  "name": "io.github.tofunori/mcp-image-scientific",
   "description": "AI image generation MCP server using Nano Banana 2 with intelligent prompt enhancement",
-  "vendor": "Shinsuke Kagawa",
+  "vendor": "Thierry Nori",
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/shinpr/mcp-image",
+    "url": "https://github.com/tofunori/mcp-image-scientific",
     "source": "github"
   },
   "version": "0.4.2",
@@ -70,6 +70,6 @@
     "google-ai",
     "ai-tools"
   ],
-  "homepage": "https://github.com/shinpr/mcp-image",
-  "documentation": "https://github.com/shinpr/mcp-image#readme"
+  "homepage": "https://github.com/tofunori/mcp-image-scientific",
+  "documentation": "https://github.com/tofunori/mcp-image-scientific#readme"
 }
