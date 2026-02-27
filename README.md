@@ -47,15 +47,15 @@ prompt: "Line chart: spectral albedo (y: 0-1) vs wavelength (x: 400-2500 nm)
          Curves decline in NIR. Axis labels, units, legend, grid."
 ```
 
-### Scientific Map — Columbia Icefield
+### Scientific Map — Mediterranean Bathymetry
 
-<img src="examples/example-map.jpg" alt="Columbia Icefield map" width="600">
+<img src="examples/example-map.jpg" alt="Mediterranean bathymetric map" width="700">
 
 ```
 figureStyle: "scientific_map"
-prompt: "Map of the Columbia Icefield, Canadian Rockies. Athabasca and
-         Saskatchewan glaciers, elevation shading, Icefields Parkway, Jasper.
-         Scale bar, north arrow, legend."
+prompt: "Bathymetric and topographic map of the Mediterranean Sea.
+         Ocean depth in shades of blue, land elevation green to brown to white.
+         Label seas, straits, major islands. Lat/lon grid, scale bar, legend."
 ```
 
 ---
