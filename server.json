@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.tofunori/mcp-image-scientific",
-  "description": "AI image generation MCP server using Nano Banana 2 with intelligent prompt enhancement",
+  "description": "MCP server for publication-quality scientific figures — diagrams, charts, and maps with built-in QA validation. Powered by Gemini 2.0 Flash Image.",
   "vendor": "Thierry Nori",
   "license": "MIT",
   "repository": {
@@ -61,14 +61,17 @@
     "mcp",
     "mcp-server",
     "image-generation",
-    "generative-ai",
-    "image-editing",
-    "prompt-enhancement",
+    "scientific-figures",
+    "publication-quality",
+    "scientific-diagram",
+    "scientific-chart",
+    "scientific-map",
+    "data-visualization",
+    "academic-publishing",
+    "quality-assurance",
     "gemini",
-    "nano-banana",
-    "nano-banana-2",
     "google-ai",
-    "ai-tools"
+    "typescript"
   ],
   "homepage": "https://github.com/tofunori/mcp-image-scientific",
   "documentation": "https://github.com/tofunori/mcp-image-scientific#readme"
