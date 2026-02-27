@@ -255,10 +255,11 @@ class ScientificQaValidatorImpl implements ScientificQaValidator {
     // Build evaluation prompt
     const evaluationPrompt = buildEvaluationPrompt(figureStyle, originalPrompt)
 
-    // Call Gemini 2.0 Flash with the image for multimodal evaluation
+    // Call QA model with the image for multimodal evaluation
     const result = await this.textClient.generateText(evaluationPrompt, {
       temperature: 0.2,
       maxTokens: 4096,
+      timeout: 60000, // Pro models need more time (~30s typical)
       systemInstruction: QA_SYSTEM_INSTRUCTION,
       inputImage: imageBase64,
     })

@@ -272,9 +272,17 @@ export class MCPServerImpl {
       this.geminiClient = clientResult.data
     }
 
-    // Initialize QA Validator (uses the text client for multimodal evaluation)
-    if (!this.qaValidator && this.geminiTextClient) {
-      this.qaValidator = createScientificQaValidator(this.geminiTextClient)
+    // Initialize QA Validator with dedicated Pro model for stricter evaluation
+    if (!this.qaValidator && configResult.data.enableScientificQa) {
+      const qaClientResult = createGeminiTextClient(configResult.data, configResult.data.scientificQaModel)
+      if (qaClientResult.success) {
+        this.qaValidator = createScientificQaValidator(qaClientResult.data)
+        this.logger.info('mcp-server', `QA validator initialized with ${configResult.data.scientificQaModel}`)
+      } else {
+        this.logger.warn('mcp-server', 'Failed to initialize QA validator', {
+          error: qaClientResult.error.message,
+        })
+      }
     }
 
     this.logger.info('mcp-server', 'Gemini clients initialized')

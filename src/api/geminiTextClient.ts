@@ -83,10 +83,11 @@ interface GeminiAIInstance {
  * Implementation of Gemini Text Client - pure API client
  */
 class GeminiTextClientImpl implements GeminiTextClient {
-  private readonly modelName = 'gemini-2.0-flash'
+  private readonly modelName: string
   private readonly genai: GeminiAIInstance
 
-  constructor(config: Config) {
+  constructor(config: Config, modelOverride?: string) {
+    this.modelName = modelOverride || 'gemini-2.0-flash'
     this.genai = new GoogleGenAI({
       apiKey: config.geminiApiKey,
     }) as unknown as GeminiAIInstance
@@ -316,9 +317,9 @@ class GeminiTextClientImpl implements GeminiTextClient {
  * @param config Configuration containing API key and settings
  * @returns Result containing the client or an error
  */
-export function createGeminiTextClient(config: Config): Result<GeminiTextClient, GeminiAPIError> {
+export function createGeminiTextClient(config: Config, modelOverride?: string): Result<GeminiTextClient, GeminiAPIError> {
   try {
-    return Ok(new GeminiTextClientImpl(config))
+    return Ok(new GeminiTextClientImpl(config, modelOverride))
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return Err(

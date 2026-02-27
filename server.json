@@ -8,13 +8,13 @@
     "url": "https://github.com/tofunori/mcp-image-scientific",
     "source": "github"
   },
-  "version": "1.1.0",
+  "version": "1.2.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "mcp-image-scientific",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "transport": {
         "type": "stdio"
       },
@@ -42,9 +42,16 @@
         },
         {
           "name": "SCIENTIFIC_QA_ENABLED",
-          "description": "Enable post-generation QA validation for scientific figures (default: true, set to 'false' to disable)",
+          "description": "Set to 'true' to enable post-generation QA validation for scientific figures (off by default)",
           "isRequired": false,
           "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "name": "SCIENTIFIC_QA_MODEL",
+          "description": "Model for QA evaluation (default: gemini-3.1-pro-preview)",
+          "isRequired": false,
+          "format": "string",
           "isSecret": false
         },
         {

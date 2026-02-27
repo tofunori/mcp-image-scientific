@@ -166,17 +166,28 @@ inputImagePath: "/path/to/existing-chart.png"
 | `GEMINI_API_KEY` | Yes | Google Gemini API key ([get one here](https://aistudio.google.com/apikey)) |
 | `IMAGE_OUTPUT_DIR` | No | Absolute path for output images (default: `./output`) |
 | `SKIP_PROMPT_ENHANCEMENT` | No | Set `true` to bypass prompt optimization |
+| `SCIENTIFIC_QA_ENABLED` | No | Set `true` to enable post-generation QA validation (off by default) |
+| `SCIENTIFIC_QA_MODEL` | No | Model for QA evaluation (default: `gemini-3.1-pro-preview`) |
+| `SCIENTIFIC_QA_MAX_RETRIES` | No | Max retries on hard QA failures (default: `1`) |
 
 ---
 
-## QA Validation (experimental)
+## QA Validation
 
-The `qa-scientific` branch includes automated quality checks for generated figures:
+Opt-in post-generation quality assurance powered by Gemini 3.1 Pro. When enabled, every scientific figure is evaluated against style-specific criteria before delivery.
 
-- **Hard checks**: axis labels present, legend readable, scale bar on maps
-- **Soft checks**: colorblind-friendly palette, sufficient contrast, text size
+Enable with `SCIENTIFIC_QA_ENABLED=true`.
 
-See the [`qa-scientific`](https://github.com/tofunori/mcp-image-scientific/tree/qa-scientific) branch for details.
+**Hard checks** (must pass — triggers automatic retry on failure):
+- Spelling accuracy, text readability, clean background, sufficient contrast
+- **Charts**: axis labels with units, legend, grid lines
+- **Maps**: scale bar, north arrow, legend
+- **Diagrams**: labeled arrows, logical flow
+
+**Soft checks** (advisory — reported but does not block):
+- Colorblind-friendly palette, balanced layout, title presence
+
+On hard failure, the prompt is automatically patched and the figure regenerated (up to `SCIENTIFIC_QA_MAX_RETRIES` times).
 
 ---
 
