@@ -3,6 +3,8 @@
  * Defines types related to @modelcontextprotocol/sdk and project-specific types
  */
 
+import type { QaReport } from './qa'
+
 /**
  * Context method type for image generation metadata
  */
@@ -119,5 +121,9 @@ export interface StructuredContent {
     processingTime: number
     contextMethod: string
     timestamp: string
+    /** QA validation report (only present when figureStyle is set and QA is enabled) */
+    qa?: QaReport | undefined
+    /** Scientific figure style used for generation */
+    figureStyle?: string | undefined
   }
 }

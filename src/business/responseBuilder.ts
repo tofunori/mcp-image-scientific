@@ -6,6 +6,7 @@
 import * as path from 'node:path'
 import type { GeneratedImageResult } from '../api/geminiClient'
 import type { McpToolResponse, StructuredContent } from '../types/mcp'
+import type { QaReport } from '../types/qa'
 import {
   type BaseError,
   ConfigError,
@@ -34,10 +35,22 @@ const UNKNOWN_ERROR_CODE = 'UNKNOWN_ERROR'
 const DEFAULT_ERROR_SUGGESTION = 'Please try again or contact support if the problem persists'
 
 /**
+ * Optional metadata to include in the success response
+ */
+export interface SuccessResponseOptions {
+  qaReport?: QaReport | undefined
+  appliedPractices?: string[] | undefined
+}
+
+/**
  * Interface for response builder functionality
  */
 export interface ResponseBuilder {
-  buildSuccessResponse(generationResult: GeneratedImageResult, filePath: string): McpToolResponse
+  buildSuccessResponse(
+    generationResult: GeneratedImageResult,
+    filePath: string,
+    options?: SuccessResponseOptions | undefined
+  ): McpToolResponse
   buildErrorResponse(error: BaseError | Error): McpToolResponse
 }
 
@@ -116,7 +129,8 @@ export function createResponseBuilder(): ResponseBuilder {
      */
     buildSuccessResponse(
       generationResult: GeneratedImageResult,
-      filePath: string
+      filePath: string,
+      options?: SuccessResponseOptions | undefined
     ): McpToolResponse {
       // File-based implementation: Always return file path, never base64
       // This avoids MCP token limit issues (25,000 tokens max)
@@ -135,6 +149,10 @@ export function createResponseBuilder(): ResponseBuilder {
           processingTime: 0, // Not tracked in simplified version
           contextMethod: 'structured_prompt',
           timestamp: generationResult.metadata.timestamp.toISOString(),
+          ...(options?.qaReport && { qa: options.qaReport }),
+          ...(options?.qaReport?.figureStyle && {
+            figureStyle: options.qaReport.figureStyle,
+          }),
         },
       }
 

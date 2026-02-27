@@ -8,13 +8,13 @@
     "url": "https://github.com/tofunori/mcp-image-scientific",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "mcp-image-scientific",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "transport": {
         "type": "stdio"
       },
@@ -38,6 +38,20 @@
           "description": "Set to 'true' to disable automatic prompt optimization and use direct prompts",
           "isRequired": false,
           "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "name": "SCIENTIFIC_QA_ENABLED",
+          "description": "Enable post-generation QA validation for scientific figures (default: true, set to 'false' to disable)",
+          "isRequired": false,
+          "format": "boolean",
+          "isSecret": false
+        },
+        {
+          "name": "SCIENTIFIC_QA_MAX_RETRIES",
+          "description": "Maximum number of retries when QA validation detects hard failures (default: 1)",
+          "isRequired": false,
+          "format": "string",
           "isSecret": false
         }
       ],

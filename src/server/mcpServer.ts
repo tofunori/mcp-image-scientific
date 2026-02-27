@@ -76,11 +76,17 @@ import {
 
 // Types
 import type { GenerateImageParams, MCPServerConfig } from '../types/mcp'
+import type { QaReport } from '../types/qa'
 
 // Business logic
 import { type FileManager, createFileManager } from '../business/fileManager'
 import { validateGenerateImageParams } from '../business/inputValidator'
 import { type ResponseBuilder, createResponseBuilder } from '../business/responseBuilder'
+import {
+  type ScientificQaValidator,
+  buildRetryPatch,
+  createScientificQaValidator,
+} from '../business/scientificQaValidator'
 import {
   type FeatureFlags,
   type StructuredPromptGenerator,
@@ -119,6 +125,7 @@ export class MCPServerImpl {
   private structuredPromptGenerator: StructuredPromptGenerator | null = null
   private geminiTextClient: GeminiTextClient | null = null
   private geminiClient: GeminiClient | null = null
+  private qaValidator: ScientificQaValidator | null = null
 
   constructor(config: Partial<MCPServerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -263,6 +270,11 @@ export class MCPServerImpl {
         throw clientResult.error
       }
       this.geminiClient = clientResult.data
+    }
+
+    // Initialize QA Validator (uses the text client for multimodal evaluation)
+    if (!this.qaValidator && this.geminiTextClient) {
+      this.qaValidator = createScientificQaValidator(this.geminiTextClient)
     }
 
     this.logger.info('mcp-server', 'Gemini clients initialized')
@@ -426,31 +438,115 @@ export class MCPServerImpl {
         this.logger.info('mcp-server', 'Prompt enhancement skipped (SKIP_PROMPT_ENHANCEMENT=true)')
       }
 
-      // Generate image using Gemini 2.5 Flash Image Preview
+      // Generate image using Gemini
       if (!this.geminiClient) {
         throw new Error('Gemini client not initialized')
       }
 
-      const generationResult = await this.geminiClient.generateImage({
-        prompt: structuredPrompt,
-        ...(inputImageData && { inputImage: inputImageData }),
-        ...(inputImageMimeType && { inputImageMimeType }),
-        ...(params.aspectRatio && { aspectRatio: params.aspectRatio }),
-        ...(params.imageSize && { imageSize: params.imageSize }),
-        ...(params.useGoogleSearch !== undefined && { useGoogleSearch: params.useGoogleSearch }),
-        ...(params.editMode && { editMode: params.editMode }),
-        ...(params.figureStyle && { figureStyle: params.figureStyle }),
-      })
+      // Determine if QA validation should run
+      const qaEnabled =
+        params.figureStyle !== undefined &&
+        configResult.data.enableScientificQa &&
+        this.qaValidator !== null
 
-      if (!generationResult.success) {
-        throw generationResult.error
+      const maxAttempts = qaEnabled ? configResult.data.scientificQaMaxRetries + 1 : 1
+
+      let currentPrompt = structuredPrompt
+      let qaReport: QaReport | undefined
+      let lastGenerationResult:
+        | typeof undefined
+        | Awaited<ReturnType<GeminiClient['generateImage']>> = undefined
+
+      // Generation + QA retry loop
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const generationResult = await this.geminiClient.generateImage({
+          prompt: currentPrompt,
+          ...(inputImageData && { inputImage: inputImageData }),
+          ...(inputImageMimeType && { inputImageMimeType }),
+          ...(params.aspectRatio && { aspectRatio: params.aspectRatio }),
+          ...(params.imageSize && { imageSize: params.imageSize }),
+          ...(params.useGoogleSearch !== undefined && {
+            useGoogleSearch: params.useGoogleSearch,
+          }),
+          ...(params.editMode && { editMode: params.editMode }),
+          ...(params.figureStyle && { figureStyle: params.figureStyle }),
+        })
+
+        if (!generationResult.success) {
+          throw generationResult.error
+        }
+
+        lastGenerationResult = generationResult
+
+        // Run QA validation for scientific figures
+        if (qaEnabled && this.qaValidator && params.figureStyle) {
+          const qaStartTime = Date.now()
+          try {
+            const qaResult = await this.qaValidator.validate({
+              imageData: generationResult.data.imageData,
+              figureStyle: params.figureStyle,
+              originalPrompt: params.prompt,
+            })
+
+            if (qaResult.success) {
+              qaReport = {
+                ...qaResult.data,
+                attempts: attempt,
+                evaluationTimeMs: Date.now() - qaStartTime,
+              }
+
+              this.logger.info('mcp-server', 'QA validation completed', {
+                attempt,
+                passed: qaReport.passed,
+                score: qaReport.score,
+                hardFailCount: qaReport.hardFailCount,
+                figureStyle: params.figureStyle,
+              })
+
+              // If QA passed or this is the last attempt, stop retrying
+              if (qaReport.passed || attempt === maxAttempts) {
+                break
+              }
+
+              // Patch prompt for retry
+              const patch = buildRetryPatch(qaReport.checks)
+              if (patch) {
+                currentPrompt = structuredPrompt + patch
+                this.logger.info('mcp-server', `QA retry ${attempt}: patching prompt`, {
+                  hardFailCount: qaReport.hardFailCount,
+                  failedChecks: qaReport.checks
+                    .filter((c) => c.status === 'fail' && c.severity === 'hard')
+                    .map((c) => c.id),
+                })
+              } else {
+                break // No patch needed
+              }
+            } else {
+              this.logger.warn('mcp-server', 'QA validation returned error', {
+                error: qaResult.error.message,
+              })
+              break // Don't retry on QA infrastructure errors
+            }
+          } catch (qaError) {
+            this.logger.warn('mcp-server', 'QA validation error (non-blocking)', {
+              error: qaError instanceof Error ? qaError.message : 'Unknown error',
+            })
+            break // Don't retry on QA infrastructure errors
+          }
+        } else {
+          break // No QA, exit loop after first generation
+        }
+      }
+
+      if (!lastGenerationResult || !lastGenerationResult.success) {
+        throw new Error('Image generation failed')
       }
 
       // Save image file with correct extension based on actual image format
       let fileName: string
       if (params.fileName) {
         // User provided a filename - ensure extension matches actual image format
-        const actualExtension = this.getExtensionFromImageData(generationResult.data.imageData)
+        const actualExtension = this.getExtensionFromImageData(lastGenerationResult.data.imageData)
         const baseName = params.fileName.replace(/\.[^/.]+$/, '') // Remove existing extension
         fileName = baseName + actualExtension
 
@@ -464,7 +560,7 @@ export class MCPServerImpl {
           })
         }
       } else {
-        fileName = this.fileManager.generateFileName(generationResult.data.imageData)
+        fileName = this.fileManager.generateFileName(lastGenerationResult.data.imageData)
       }
       const outputPath = path.join(configResult.data.imageOutputDir, fileName)
 
@@ -474,15 +570,19 @@ export class MCPServerImpl {
       }
 
       const saveResult = await this.fileManager.saveImage(
-        generationResult.data.imageData,
+        lastGenerationResult.data.imageData,
         sanitizedPath.data
       )
       if (!saveResult.success) {
         throw saveResult.error
       }
 
-      // Build response
-      return this.responseBuilder.buildSuccessResponse(generationResult.data, saveResult.data)
+      // Build response with QA metadata
+      return this.responseBuilder.buildSuccessResponse(
+        lastGenerationResult.data,
+        saveResult.data,
+        qaReport ? { qaReport } : undefined
+      )
     }, 'image-generation')
 
     if (result.ok) {

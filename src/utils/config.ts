@@ -15,6 +15,8 @@ export interface Config {
   imageOutputDir: string
   apiTimeout: number
   skipPromptEnhancement: boolean // Skip prompt enhancement for direct control
+  enableScientificQa: boolean // Enable post-generation QA validation for scientific figures
+  scientificQaMaxRetries: number // Max retries when QA detects hard failures (default: 1)
 }
 
 /**
@@ -83,6 +85,11 @@ export function getConfig(): Result<Config, ConfigError> {
     imageOutputDir: process.env['IMAGE_OUTPUT_DIR'] || DEFAULT_CONFIG.imageOutputDir,
     apiTimeout: DEFAULT_CONFIG.apiTimeout,
     skipPromptEnhancement: process.env['SKIP_PROMPT_ENHANCEMENT'] === 'true',
+    enableScientificQa: process.env['SCIENTIFIC_QA_ENABLED'] !== 'false', // default: true
+    scientificQaMaxRetries: Math.max(
+      0,
+      Number.parseInt(process.env['SCIENTIFIC_QA_MAX_RETRIES'] || '1', 10) || 1
+    ),
   }
 
   return validateConfig(config)
