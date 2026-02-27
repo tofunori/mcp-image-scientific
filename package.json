@@ -1,7 +1,7 @@
 {
   "name": "mcp-image-scientific",
   "mcpName": "io.github.tofunori/mcp-image-scientific",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "description": "MCP server for publication-quality scientific figures — diagrams, charts, maps with QA validation. Powered by Gemini.",
   "main": "dist/index.js",
   "bin": {
